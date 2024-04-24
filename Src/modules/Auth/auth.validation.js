@@ -22,16 +22,29 @@ export const doctorSignup = joi.object({
   gender: generalFields.gender.required(),
   role: generalFields.role.required(),
   licenseNumber: joi.string(),
-  yearsOfExperience: joi.number(),
+  yearsOfExperience: joi.number().min(1),
   consultationFees: joi.number(),
   bio: joi.string().min(10).max(15000),
-  patientList: joi.array(),
+  // specialtyId: generalFields.id.required(),
+});
+
+export const addWorkingHours = joi.object({
+  workingHours: joi
+    .array()
+    .items(
+      joi.object({
+        start: joi.string().required(),
+        end: joi.string().required(),
+      })
+    )
+    .min(5)
+    .max(5)
+    .required(),
 });
 
 export const login = joi.object({
   email: generalFields.email.required(),
   password: generalFields.password.required(),
-  role: generalFields.role.required(),
 });
 
 export const confirmEmail = joi.object({
@@ -41,16 +54,10 @@ export const confirmEmail = joi.object({
 
 export const sendCode = joi.object({
   email: generalFields.email.required(),
-  role: generalFields.role.required(),
 });
 
 export const forgotPassword = joi.object({
   email: generalFields.email.required(),
   password: generalFields.password.required(),
   code: joi.string().length(4).required(),
-  role: generalFields.role.required(),
-});
-
-export const deleteInvalidConfirm = joi.object({
-  role: generalFields.role.required(),
 });

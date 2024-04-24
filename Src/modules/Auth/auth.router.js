@@ -4,6 +4,7 @@ import { asyncHandler } from "../../middleware/errorHandling.js";
 import { validation } from "../../middleware/validation.js";
 import * as validators from "./auth.validation.js";
 import fileUpload, { fileValidation } from "../../services/multer.js";
+import { auth, roles } from "../../middleware/auth.js";
 
 const router = Router();
 
@@ -23,6 +24,14 @@ router.post(
   asyncHandler(AuthController.signup)
 );
 
+// Adding Doctor Working Hours:
+router.post(
+  "/addWorkingHours",
+  asyncHandler(auth(roles.Doctor)),
+  validation(validators.addWorkingHours),
+  asyncHandler(AuthController.addWorkingHours)
+);
+
 router.post(
   "/login",
   validation(validators.login),
@@ -30,7 +39,7 @@ router.post(
 );
 
 router.get(
-  "/confirmEmail/:token/:role",
+  "/confirmEmail/:role/:token",
   validation(validators.confirmEmail),
   asyncHandler(AuthController.confirmEmail)
 );
@@ -48,8 +57,12 @@ router.post(
 );
 
 router.delete(
-  "/invalidConfirm",
-  validation(validators.deleteInvalidConfirm),
-  asyncHandler(AuthController.deleteInvalidConfirm)
+  "/invalidConfirmDoctor",
+  asyncHandler(AuthController.deleteInvalidConfirmDoctors)
+);
+
+router.delete(
+  "/invalidConfirmPatient",
+  asyncHandler(AuthController.deleteInvalidConfirmPatients)
 );
 export default router;

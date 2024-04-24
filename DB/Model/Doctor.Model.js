@@ -47,6 +47,7 @@ const doctorSchema = new Schema(
     },
     yearsOfExperience: {
       type: Number,
+      min: 1,
     },
     consultationFees: {
       type: Number,
@@ -62,7 +63,7 @@ const doctorSchema = new Schema(
         ref: "patientModel",
       },
     ],
-    specialty: {
+    specialtyId: {
       type: Types.ObjectId,
       ref: "specialtyModel",
     },
@@ -76,6 +77,21 @@ const doctorSchema = new Schema(
       length: 4,
       default: null,
     },
+    workingHours: [
+      {
+        start: Date,
+        end: Date,
+      },
+    ],
+    changePasswordTime: {
+      type: Date,
+    },
+    currentAppointments: [
+      {
+        type: Types.ObjectId,
+        ref: "Appointment",
+      },
+    ],
   },
   {
     timestamps: true,

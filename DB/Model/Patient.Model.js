@@ -49,18 +49,16 @@ const patientSchema = new Schema(
       required: true,
       enum: ["Patient"],
     },
-    // medicalHistory: [
-    //   {
-    //     type: Types.ObjectId,
-    //     ref: "MedicalHistory",
-    //   },
-    // ],
-    // currentAppointments: [
-    //   {
-    //     date: { type: Date, required: true },
-    //     doctor: { type: Types.ObjectId, ref: "Doctor" },
-    //   },
-    // ],
+    medicalHistoryId: {
+      type: Types.ObjectId,
+      ref: "MedicalHistory",
+    },
+    currentAppointments: [
+      {
+        type: Types.ObjectId,
+        ref: "Appointment",
+      },
+    ],
     sendCode: {
       type: String,
       length: 4,

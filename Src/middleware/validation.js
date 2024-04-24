@@ -1,6 +1,15 @@
 import joi from "joi";
+import { Types } from "mongoose";
+
+export const validationObjectId = (value, helper) => {
+  if (Types.ObjectId.isValid(value)) {
+    return true;
+  }
+  return helper.message();
+};
 
 export const generalFields = {
+  id: joi.string().min(24).max(24).custom(validationObjectId).required(),
   userName: joi.string().min(3).max(20).required(),
   email: joi.string().email().required().min(5).message({
     "string.email": "Plz Enter a Valid Email",
