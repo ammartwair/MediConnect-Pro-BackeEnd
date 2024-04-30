@@ -4,7 +4,7 @@ import authRouter from "./Auth/auth.router.js";
 import appointmentRouter from "./Appointment/appointment.router.js";
 import userRouter from "./User/user.router.js";
 import blogRouter from "./Blog/blog.router.js";
-import medicalHistoryRouter from "./medicalHistory/medicalRecord.router.js";
+import medicalHistoryRouter from "./MedicalHistory/medicalRecord.router.js";
 import paymentRouter from "./Payment/payment.router.js";
 import notificationRouter from "./Notifications/notification.router.js";
 
