@@ -21,11 +21,39 @@ export const doctorSignup = joi.object({
   phoneNumber: generalFields.phoneNumber.required(),
   gender: generalFields.gender.required(),
   role: generalFields.role.required(),
-  licenseNumber: joi.string(),
-  yearsOfExperience: joi.number().min(1),
-  consultationFees: joi.number(),
+  licenseNumber: joi.string().required(),
+  yearsOfExperience: joi.number().min(1).required(),
+  consultationFees: joi.number().min(50).required(),
   bio: joi.string().min(10).max(15000),
-  // specialtyId: generalFields.id.required(),
+  specialties: joi
+    .array()
+    .items(
+      joi
+        .string()
+        .valid(
+          "cardiology",
+          "dermatology",
+          "endocrinology",
+          "gastroenterology",
+          "hematology",
+          "infectiousDisease",
+          "neurology",
+          "obstetricsAndGynecology(OB/GYN)",
+          "oncology",
+          "ophthalmology",
+          "orthopedics",
+          "otolaryngology(ENT)",
+          "pediatrics",
+          "pulmonology",
+          "rheumatology",
+          "urology",
+          "psychiatry",
+          "anesthesiology",
+          "emergencyMedicine ",
+          "familyMedicine"
+        )
+    )
+    .required(),
 });
 
 export const addWorkingHours = joi.object({

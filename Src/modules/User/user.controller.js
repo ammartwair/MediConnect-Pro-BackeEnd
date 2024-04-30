@@ -3,15 +3,21 @@ import patientModel from "../../../DB/Model/Patient.Model.js";
 import cloudinary from "../../services/cloudinary.js";
 import bcrypt from "bcryptjs";
 
-import XLSX from 'xlsx';
-import { createPdf } from '../../services/pdf.js';
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+import XLSX from "xlsx";
+import { createPdf } from "../../services/pdf.js";
 
 // Get Doctors:
 export const getDoctors = async (req, res, next) => {
   const doctors = await doctorModel.find({});
 
   if (!doctors) {
-    return next(new Error("No Doctors", { cause: 404 }));
+    return next(new Error("No Doctors", { status: 404 }));
   }
 
   return res.json({ message: "Success", doctors });
@@ -22,7 +28,7 @@ export const getPatients = async (req, res, next) => {
   const patients = await patientModel.find();
 
   if (!patients) {
-    return next(new Error("No Patients", { cause: 404 }));
+    return next(new Error("No Patients", { status: 404 }));
   }
 
   return res.json({ message: "Success", patients });
@@ -36,7 +42,7 @@ export const deleteUser = async (req, res, next) => {
   const user = await model.findByIdAndDelete({ _id: id });
 
   if (!user) {
-    return next(new Error("User Not Found", { cause: 404 }));
+    return next(new Error("User Not Found", { status: 404 }));
   }
 
   return res.status(200).json({ message: "Success", user });
@@ -45,7 +51,7 @@ export const deleteUser = async (req, res, next) => {
 // Update User Profile Picture:
 export const profilePic = async (req, res, next) => {
   if (!req.file) {
-    return next(new Error("Please Provide a Picture", { cause: 404 }));
+    return next(new Error("Please Provide a Picture", { status: 404 }));
   }
 
   const { secure_url, public_id } = await cloudinary.uploader.upload(
@@ -74,7 +80,7 @@ export const updatePassword = async (req, res, next) => {
   const { oldPassword, newPassword, cPassword } = req.body;
 
   if (newPassword !== cPassword) {
-    return next(new Error("Invalid Confirm Passwored!!", { cause: 404 }));
+    return next(new Error("Invalid Confirm Passwored!!", { status: 404 }));
   }
 
   const model = req.user.role == "Doctor" ? doctorModel : patientModel;
@@ -82,7 +88,7 @@ export const updatePassword = async (req, res, next) => {
 
   const match = bcrypt.compareSync(oldPassword, user.password);
   if (!match) {
-    return next(new Error("Invalid Old Password", { cause: 404 }));
+    return next(new Error("Invalid Old Password", { status: 404 }));
   }
 
   const hashedPassword = bcrypt.hashSync(
@@ -102,7 +108,7 @@ export const getProfile = async (req, res, next) => {
   const user = await model.findById({ _id: req.user._id });
 
   if (!user) {
-    return next(new Error("User Not Found", { cause: 404 }));
+    return next(new Error("User Not Found", { status: 404 }));
   }
 
   return res.json({ message: "Success", user });
@@ -116,7 +122,7 @@ export const uploadPatientExcel = async (req, res, next) => {
   const patients = XLSX.utils.sheet_to_json(woorkSheet);
 
   if (!(await patientModel.insertMany(patients))) {
-    return next(new Error("Couldn not insert", { cause: 400 }));
+    return next(new Error("Couldn not insert", { status: 400 }));
   }
 
   return res.status(200).json({ message: "Success" });
@@ -125,5 +131,6 @@ export const uploadPatientExcel = async (req, res, next) => {
 // create pdf file with patients information
 export const getUsers = async (req, res, next) => {
   const patients = await patientModel.find({}).lean();
-  await createPdf(patients, "PatientList.pdf", req, res);
+  const htmlPath = join(__dirname, "../../../templtes/pdf.html");
+  await createPdf(patients, htmlPath, "PatientList.pdf", req, res);
 };

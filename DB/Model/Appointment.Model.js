@@ -39,10 +39,14 @@ const appointmentSchema = new Schema(
     notes: {
       type: String,
     },
+    invoiceId: {
+      type: Types.ObjectId,
+      ref: "Payment",
+    },
     paymentStatus: {
       type: String,
       required: true,
-      enum: ["paid", "pending", "failed", "cancelled"],
+      enum: ["unpaid", "paid", "cancelled", "failed"],
     },
     createdBy: {
       type: Types.ObjectId,

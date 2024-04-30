@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Patients List</h1>
+    <table border="1">
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+      </tr>
+      {{#each data}}
+      <tr>
+        <td>{{ this._id }}</td>
+        <td>{{ this.userName }}</td>
+        <td>{{ this.email }}</td>
+      </tr>
+      {{/each}}
+    </table>
+  </body>
+</html>

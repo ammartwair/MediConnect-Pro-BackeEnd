@@ -5,7 +5,10 @@ import * as appointmentController from "./appointment.controller.js";
 import { validation } from "../../middleware/validation.js";
 import * as validators from "./appointment.validation.js";
 import { endPoints } from "./appointment.endPoints.js";
+import reviewRouter from "../../modules/Review/review.router.js";
 const router = Router();
+
+router.use("/:appointmentId/review", reviewRouter);
 
 // Book Appointment
 router.post(
@@ -19,6 +22,7 @@ router.post(
 router.get(
   "/getPatientAppointments",
   asyncHandler(auth(endPoints.getPatientAppointments)),
+  validation(validators.getPatientAppointments),
   asyncHandler(appointmentController.getPatientAppointments)
 );
 
@@ -26,6 +30,7 @@ router.get(
 router.get(
   "/getDoctorAppointments",
   asyncHandler(auth(endPoints.getDoctorAppointments)),
+  validation(validators.getDoctorAppointments),
   asyncHandler(appointmentController.getDoctorAppointments)
 );
 
@@ -68,5 +73,11 @@ router.patch(
   asyncHandler(appointmentController.changePaymentStatus)
 );
 
-
+//Get Appointment Review
+router.get(
+  "/getAppointmentReview/:appointmentId",
+  asyncHandler(auth(endPoints.getAppointmentReview)),
+  validation(validators.getAppointmentReview),
+  asyncHandler(appointmentController.getAppointmentReview)
+);
 export default router;

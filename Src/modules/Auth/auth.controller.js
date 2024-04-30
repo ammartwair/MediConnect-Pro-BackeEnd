@@ -12,7 +12,7 @@ export const signup = async (req, res, next) => {
   const model = role == "Doctor" ? doctorModel : patientModel;
   const user = await model.findOne({ email });
   if (user) {
-    return next(new Error("User Already Registered", { cause: 409 }));
+    return next(new Error("User Already Registered", { status: 409 }));
   }
 
   req.body.password = bcrypt.hashSync(
@@ -35,9 +35,6 @@ export const signup = async (req, res, next) => {
     `To  Verify Your Email <a href='${req.protocol}://${req.headers.host}/auth/confirmEmail/${role}/${token}'>Click Here</a>`
   );
 
-  if (role === "Doctor") {
-    // req.body.patientList = [];
-  }
   const createUser = await model.create(req.body);
 
   return res.status(200).json({ message: "User Created", createUser, token });
@@ -51,7 +48,9 @@ export const addWorkingHours = async (req, res, next) => {
     { new: true }
   );
   if (!doctor) {
-    return next(new Error("Can't add working hours to doctor", { cause: 404 }));
+    return next(
+      new Error("Can't add working hours to doctor", { status: 404 })
+    );
   }
   return res
     .status(200)
@@ -69,7 +68,7 @@ export const login = async (req, res, next) => {
   if (!doctor) {
     patient = await patientModel.findOne({ email });
     if (!patient) {
-      return next(new Error("User Not Registered", { cause: 409 }));
+      return next(new Error("User Not Registered", { status: 409 }));
     }
     user = patient;
   } else {
@@ -77,12 +76,12 @@ export const login = async (req, res, next) => {
   }
 
   if (!user.confirmEmail) {
-    return next(new Error("Plz Confirm Your Email ^_^", { cause: 400 }));
+    return next(new Error("Plz Confirm Your Email ^_^", { status: 400 }));
   }
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) {
-    return next(new Error("Invalid Password!!", { cause: 400 }));
+    return next(new Error("Invalid Password!!", { status: 400 }));
   }
 
   const token = jwt.sign(
@@ -108,7 +107,7 @@ export const confirmEmail = async (req, res, next) => {
 
   const decoded = jwt.verify(token, process.env.SIGN_UP_SECRET);
   if (!decoded) {
-    return next(new Error("Invalid Token", { cause: 404 }));
+    return next(new Error("Invalid Token", { status: 404 }));
   }
 
   const model = role == "Doctor" ? doctorModel : patientModel;
@@ -123,7 +122,7 @@ export const confirmEmail = async (req, res, next) => {
   if (!user) {
     return next(
       new Error("Invalid verify your email OR Your email is verified", {
-        cause: 400,
+        status: 400,
       })
     );
   }
@@ -142,7 +141,7 @@ export const sendCode = async (req, res, next) => {
   if (!doctor) {
     patient = await patientModel.findOne({ email });
     if (!patient) {
-      return next(new Error("User Not Registered", { cause: 409 }));
+      return next(new Error("User Not Registered", { status: 409 }));
     }
     model = patientModel;
   } else {
@@ -171,7 +170,7 @@ export const forgotPassword = async (req, res, next) => {
   if (!doctor) {
     patient = await patientModel.findOne({ email });
     if (!patient) {
-      return next(new Error("User Not Registered", { cause: 409 }));
+      return next(new Error("User Not Registered", { status: 409 }));
     }
     user = patient;
   } else {
@@ -179,12 +178,12 @@ export const forgotPassword = async (req, res, next) => {
   }
 
   if (user.sendCode !== code) {
-    return next(new Error("Invalid Code!", { cause: 400 }));
+    return next(new Error("Invalid Code!", { status: 400 }));
   }
 
   let match = await bcrypt.compare(password, user.password);
   if (match) {
-    return next(new Error("Same Password", { cause: 409 }));
+    return next(new Error("Same Password", { status: 409 }));
   }
 
   user.password = await bcrypt.hash(password, parseInt(process.env.SALTROUND));
@@ -201,7 +200,7 @@ export const deleteInvalidConfirmDoctors = async (req, res, next) => {
   const users = await doctorModel.deleteMany({ confirmEmail: false });
 
   if (!users.deletedCount) {
-    return next(new Error("Users Not Found", { cause: 409 }));
+    return next(new Error("Users Not Found", { status: 409 }));
   }
   return res.status(200).json({ message: "Successfully deleted" });
 };
@@ -211,7 +210,7 @@ export const deleteInvalidConfirmPatients = async (req, res, next) => {
   const users = await patientModel.deleteMany({ confirmEmail: false });
 
   if (!users.deletedCount) {
-    return next(new Error("Users Not Found", { cause: 409 }));
+    return next(new Error("Users Not Found", { status: 409 }));
   }
   return res.status(200).json({ message: "Successfully deleted" });
 };

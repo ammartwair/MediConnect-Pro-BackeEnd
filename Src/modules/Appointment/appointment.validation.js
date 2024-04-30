@@ -20,6 +20,16 @@ export const updateAppointment = joi.object({
   notes: joi.string(),
 });
 
+export const getPatientAppointments = joi.object({
+  page: joi.number().min(1),
+  limit: joi.number().min(1).max(10),
+});
+
+export const getDoctorAppointments = joi.object({
+  page: joi.number().min(1),
+  limit: joi.number().min(1).max(10),
+});
+
 export const cancelAppointment = joi.object({
   appointmentId: generalFields.id.required(),
 });
@@ -31,5 +41,11 @@ export const changeAppointmentStatus = joi.object({
 
 export const changePaymentStatus = joi.object({
   appointmentId: generalFields.id.required(),
-  paymentStatus: joi.string().valid("paid", "failed", "cancelled").required(),
+  paymentStatus: joi.string().valid("failed", "cancelled").required(),
+});
+
+export const getAppointmentReview = joi.object({
+  appointmentId: generalFields.id.required(),
+  page: joi.number().min(1),
+  limit: joi.number().min(1).max(10),
 });

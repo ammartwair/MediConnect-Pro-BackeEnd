@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      /* Add your CSS styles here */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Invoices</h1>
+    <table>
+      <tr>
+        <th>Invoice Number</th>
+        <th>Patient Id</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Payment Date</th>
+      </tr>
+      {{#each data}}
+      <tr>
+        <td>{{ this.invoiceNumber }}</td>
+        <td>{{ this.patientId }}</td>
+        <td>{{ this.amount }}</td>
+        <td>{{ this.status }}</td>
+        <td>{{ this.paymentDate }}</td>
+      </tr>
+      {{/each}}
+    </table>
+  </body>
+</html>

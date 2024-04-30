@@ -1,7 +1,10 @@
 import appointmentModel from "../../../DB/Model/Appointment.Model.js";
 import doctorModel from "../../../DB/Model/Doctor.Model.js";
 import patientModel from "../../../DB/Model/Patient.Model.js";
+import paymentModel from "../../../DB/Model/Payments.Model.js";
 import { sendEmail } from "../../services/email.js";
+import { formateDate, formateTime } from "../../services/formatDateTime.js";
+import { pagination } from "../../services/pagination.js";
 
 // Book Appointment
 export const bookAppointment = async (req, res, next) => {
@@ -30,7 +33,7 @@ export const bookAppointment = async (req, res, next) => {
     endTime
   );
   if (!available) {
-    return next(new Error(availableMessage, { cause: 404 }));
+    return next(new Error(availableMessage, { status: 404 }));
   }
 
   const { conflict, conflictMessage } = await hasAppointmentConflict(
@@ -41,13 +44,13 @@ export const bookAppointment = async (req, res, next) => {
     "Patient"
   );
   if (conflict) {
-    return next(new Error(conflictMessage, { cause: 404 }));
+    return next(new Error(conflictMessage, { status: 404 }));
   }
 
   const { conflict: doctorConflict, conflictMessage: doctorConflictMessage } =
     await hasAppointmentConflict(doctorId, date, startTime, endTime, "Doctor");
   if (doctorConflict) {
-    return next(new Error(doctorConflictMessage, { cause: 404 }));
+    return next(new Error(doctorConflictMessage, { status: 404 }));
   }
 
   const appointment = await appointmentModel.create({
@@ -59,7 +62,7 @@ export const bookAppointment = async (req, res, next) => {
     duration,
     reasonForVisit,
     status: "pending",
-    paymentStatus: "pending",
+    paymentStatus: "unpaid",
     createdBy: patientId,
     updatedBy: patientId,
     notes: req.body.notes || "",
@@ -102,33 +105,53 @@ export const bookAppointment = async (req, res, next) => {
 
 // Get Doctor Appointments
 export const getDoctorAppointments = async (req, res, next) => {
+  const { skip, limit } = pagination(req.query.page, req.query.limit);
   const appointments = await appointmentModel
     .find({
       doctorId: req.user._id,
       status: "booked",
     })
-    .select("date doctorId patientId status");
+    .select("date doctorId patientId status")
+    .skip(skip)
+    .limit(limit);
+
   if (appointments?.length == 0) {
     return next(new Error("Doctor has no appointments!!"));
   }
 
-  return res.status(200).json(appointments);
+  const count = await appointments.estimatedDocumentCount();
+
+  return res.status(200).json({
+    message: "success",
+    Page: appointments.length,
+    Total: count,
+    appointments,
+  });
 };
 
 //Get Patient Appointments
 export const getPatientAppointments = async (req, res, next) => {
+  const { skip, limit } = pagination(req.query.page, req.query.limit);
   const appointments = await appointmentModel
     .find({
       patientId: req.user._id,
       status: "booked",
     })
-    .select("date doctorId patientId status");
+    .select("date doctorId patientId status")
+    .skip(skip)
+    .limit(limit);
 
   if (appointments?.length == 0) {
     return next(new Error("Patient has no appointments!!"));
   }
+  const count = await appointments.estimatedDocumentCount();
 
-  return res.status(200).json(appointments);
+  return res.status(200).json({
+    message: "success",
+    Page: appointments.length,
+    Total: count,
+    appointments,
+  });
 };
 
 //Get Appointment Details
@@ -138,7 +161,7 @@ export const getAppointmentDetails = async (req, res, next) => {
   if (!appointment) {
     return next(
       new Error(`There is No Appointment With ID: ${req.params.id} `, {
-        cause: 404,
+        status: 404,
       })
     );
   }
@@ -157,11 +180,11 @@ export const cancelAppointment = async (req, res, next) => {
     !appointment ||
     appointment.patientId.toString() !== patientId.toString()
   ) {
-    return next(new Error("Appointment not found", { cause: 404 }));
+    return next(new Error("Appointment not found", { status: 404 }));
   }
 
   if (appointment.status == "complete" || appointment.status == "cancelled") {
-    return next(new Error("Can't Cancel This Appointment", { cause: 404 }));
+    return next(new Error("Can't Cancel This Appointment", { status: 404 }));
   }
 
   appointment = await appointmentModel.findByIdAndUpdate(
@@ -201,12 +224,15 @@ export const updateAppointment = async (req, res, next) => {
   let { doctorId, date, startTime, endTime } = req.body;
   const patientId = req.user._id;
 
+  if (req.body.paymentStatus)
+    return next(new Error("You can't cahange payment status"));
+
   let appointment = await appointmentModel.findById(appointmentId);
   if (
     !appointment ||
     appointment.patientId.toString() !== patientId.toString()
   ) {
-    return next(new Error("Appointment not found", { cause: 404 }));
+    return next(new Error("Appointment not found", { status: 404 }));
   }
 
   date = new Date(date);
@@ -226,7 +252,7 @@ export const updateAppointment = async (req, res, next) => {
 
   const patient = await patientModel.findById(patientId);
   if (!patient) {
-    return next(new Error("patient not found", { cause: 404 }));
+    return next(new Error("patient not found", { status: 404 }));
   }
 
   const { available, availableMessage } = await isDoctorAvailable(
@@ -236,7 +262,7 @@ export const updateAppointment = async (req, res, next) => {
     endTime
   );
   if (!available) {
-    return next(new Error(availableMessage, { cause: 404 }));
+    return next(new Error(availableMessage, { status: 404 }));
   }
 
   const { conflict, conflictMessage } = await hasAppointmentConflict(
@@ -247,13 +273,13 @@ export const updateAppointment = async (req, res, next) => {
     "Patient"
   );
   if (conflict) {
-    return next(new Error(conflictMessage, { cause: 404 }));
+    return next(new Error(conflictMessage, { status: 404 }));
   }
 
   const { conflict: doctorConflict, conflictMessage: doctorConflictMessage } =
     await hasAppointmentConflict(doctorId, date, startTime, endTime, "Doctor");
   if (doctorConflict) {
-    return next(new Error(doctorConflictMessage, { cause: 404 }));
+    return next(new Error(doctorConflictMessage, { status: 404 }));
   }
   let newDoctor = false;
 
@@ -270,7 +296,6 @@ export const updateAppointment = async (req, res, next) => {
     duration,
     reasonForVisit: req.body.reasonForVisit || appointment.reasonForVisit,
     status: "pending",
-    paymentStatus: "pending",
     updatedBy: patientId,
     notes: req.body.notes || appointment.notes,
   });
@@ -313,7 +338,7 @@ export const changeAppointmentStatus = async (req, res, next) => {
 
   let appointment = await appointmentModel.findById(appointmentId);
   if (!appointment) {
-    return next(new Error("Appointment not found", { cause: 404 }));
+    return next(new Error("Appointment not found", { status: 404 }));
   }
 
   if (
@@ -353,7 +378,7 @@ export const changeAppointmentStatus = async (req, res, next) => {
 
   return next(
     new Error(`Can't Change Status from ${appointment.status} to ${status}`, {
-      cause: 404,
+      status: 404,
     })
   );
 };
@@ -363,16 +388,31 @@ export const changePaymentStatus = async (req, res, next) => {
   const { appointmentId } = req.params;
   const { paymentStatus } = req.body;
 
+  if (paymentStatus == "paid")
+    return next(
+      new Error("Only the patient can update payment to 'paid'", {
+        status: 403,
+      })
+    );
+
   let appointment = await appointmentModel.findById(appointmentId);
   if (!appointment) {
-    return next(new Error("Appointment not found", { cause: 404 }));
+    return next(new Error("Appointment not found", { status: 404 }));
   }
+
+  if (!appointment.invoiceId)
+    return next(
+      new Error(
+        "Invoice not found, You must create an Invoice for this appointment",
+        { status: 404 }
+      )
+    );
 
   if (appointment.status == "cancelled" && paymentStatus != "cancelled") {
     return next(
       new Error(
         "The appointment is cancelled => You must cancel the payment status",
-        { cause: 404 }
+        { status: 404 }
       )
     );
   }
@@ -383,6 +423,16 @@ export const changePaymentStatus = async (req, res, next) => {
     { new: true }
   );
 
+  const invoice = await paymentModel.findByIdAndUpdate(
+    appointment.invoiceId,
+    {
+      status: paymentStatus,
+      paymentDate: new Date(),
+      updatedBy: req.user._id,
+    },
+    { new: true }
+  );
+
   const patient = await patientModel.findById(appointment.patientId);
   if (paymentStatus == "failed") {
     await sendEmail(
@@ -390,16 +440,35 @@ export const changePaymentStatus = async (req, res, next) => {
       "Faild Payment",
       `<p>The payment was not completed successfully :( <br>For more information, refer to the relevant authorities</p>`
     );
-  } else if(paymentStatus == "paid"){
+  } else if (paymentStatus == "cancelled") {
     await sendEmail(
       patient.email,
-      "Success Payment",
-      `<p>The payment was completed successfully ^_^</p>`
+      "Cancelled Payment",
+      `<p>The payment was cancelled</p>`
     );
   }
-  return res
-    .status(200)
-    .json({ message: "appointment successfully updated", appointment });
+  return res.status(200).json({
+    message: "appointment status successfully updated",
+    appointment,
+    invoice,
+  });
+};
+
+// Get Appointment Review
+export const getAppointmentReview = async (req, res, next) => {
+  const { skip, limit } = pagination(req.query.page, req.query.limit);
+  const appointment = await appointmentModel
+    .findById(req.params.appointmentId)
+    .select("name doctorId review")
+    .populate("review")
+    .skip(skip)
+    .limit(limit);
+
+  if (!appointment) {
+    return next(new Error("Appointment not found", { status: 404 }));
+  }
+
+  return res.status(200).json({ message: "Success", appointment });
 };
 
 // Helper Functions
@@ -488,27 +557,4 @@ async function hasAppointmentConflict(
   }
 
   return { conflict, conflictMessage };
-}
-
-function formateDate(date) {
-  const days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-
-  return `${days[date.getDay()]} ${date.getFullYear()}-${(date.getMonth() + 1)
-    .toString()
-    .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-}
-
-function formateTime(time) {
-  return `${time.getUTCHours().toString().padStart(2, "0")}:${time
-    .getUTCMinutes()
-    .toString()
-    .padStart(2, "0")}`;
 }

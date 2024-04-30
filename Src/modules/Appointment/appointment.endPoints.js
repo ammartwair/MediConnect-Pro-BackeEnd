@@ -8,7 +8,9 @@ export const endPoints = {
   book: [roles.Patient],
   cancel: [roles.Patient],
   update: [roles.Patient],
-  
+
   changeAppointmentStatus: [roles.Admin],
   changePaymentStatus: [roles.Admin],
+
+  getAppointmentReview: [roles.Admin, roles.Doctor],
 };

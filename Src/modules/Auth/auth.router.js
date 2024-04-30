@@ -32,37 +32,45 @@ router.post(
   asyncHandler(AuthController.addWorkingHours)
 );
 
+// Log in
 router.post(
   "/login",
   validation(validators.login),
   asyncHandler(AuthController.login)
 );
 
+// Confirm Email
 router.get(
   "/confirmEmail/:role/:token",
   validation(validators.confirmEmail),
   asyncHandler(AuthController.confirmEmail)
 );
 
+// Send Code
 router.patch(
   "/sendCode",
   validation(validators.sendCode),
   asyncHandler(AuthController.sendCode)
 );
 
+// Forgot Password
 router.post(
   "/forgotPassword",
   validation(validators.forgotPassword),
   asyncHandler(AuthController.forgotPassword)
 );
 
+// Delete Invalid Confrim Email for Doctors
 router.delete(
   "/invalidConfirmDoctor",
+  asyncHandler(auth(roles.Admin)),
   asyncHandler(AuthController.deleteInvalidConfirmDoctors)
 );
 
+// Delete Invalid Confrim Email for Patients
 router.delete(
   "/invalidConfirmPatient",
+  asyncHandler(auth(roles.Admin)),
   asyncHandler(AuthController.deleteInvalidConfirmPatients)
 );
 export default router;
