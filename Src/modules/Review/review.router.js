@@ -10,10 +10,19 @@ const router = Router({ mergeParams: true });
 
 // Create a new Review
 router.post(
-  "/",
+  "/:appointmentId",
   asyncHandler(auth(endPoint.create)),
   validation(validators.create),
   asyncHandler(reviewController.create)
 );
+
+//Get Appointment Review
+router.get(
+  "/getAppointmentReview/:appointmentId",
+  asyncHandler(auth(endPoint.getAppointmentReview)),
+  validation(validators.getAppointmentReview),
+  asyncHandler(reviewController.getAppointmentReview)
+);
+
 
 export default router;

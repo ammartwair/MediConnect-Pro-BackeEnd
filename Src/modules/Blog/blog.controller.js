@@ -6,6 +6,7 @@ import { pagination } from "../../services/pagination.js";
 
 //create a new blog:
 export const createBlog = async (req, res, next) => {
+  console.log(req);
   const { title } = req.body;
   let blog = await blogModel.findOne({ title });
 
@@ -50,15 +51,23 @@ export const getBlogs = async (req, res, next) => {
   const mongooseQuery = await blogModel
     .find(queryObject)
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate('createdBy');
 
   const blogs = mongooseQuery;
 
+  const blogsWithUsernames = blogs.map(blog => ({
+    ...blog.toJSON(),
+    username: blog.createdBy.username 
+  }));
+
+  console.log(blogsWithUsernames);
+
   if (blogs.length <= 0) {
-    return next(new Error("No Blogs", { status: 404 }));
+    return res.json({ message: "No Blogs" });
   }
 
-  return res.status(200).json({ message: "success", blogs });
+  return res.status(200).json({ message: "success", blogsWithUsernames });
 };
 
 // get specific blog by name:

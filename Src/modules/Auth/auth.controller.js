@@ -5,12 +5,17 @@ import cloudinary from "../../services/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../../services/email.js";
 import { customAlphabet } from "nanoid";
+import adminModel from "../../../DB/Model/Admin.Model.js";
 
 //Sign up:
 export const signup = async (req, res, next) => {
   const { userName, email, password, role } = req.body;
   const model = role == "Doctor" ? doctorModel : patientModel;
-  const user = await model.findOne({ email });
+  let user = await model.findOne({ email });
+  if (user) {
+    return next(new Error("User Already Registered", { status: 409 }));
+  }
+  user = await adminModel.findOne({email});
   if (user) {
     return next(new Error("User Already Registered", { status: 409 }));
   }
@@ -29,6 +34,7 @@ export const signup = async (req, res, next) => {
   req.body.image = { secure_url, public_id };
 
   const token = jwt.sign({ email }, process.env.SIGN_UP_SECRET);
+
   await sendEmail(
     email,
     "Confirm Email",
@@ -38,6 +44,7 @@ export const signup = async (req, res, next) => {
   const createUser = await model.create(req.body);
 
   return res.status(200).json({ message: "User Created", createUser, token });
+
 };
 
 export const addWorkingHours = async (req, res, next) => {
@@ -55,43 +62,54 @@ export const addWorkingHours = async (req, res, next) => {
   return res
     .status(200)
     .json({ message: "Success Adding Working Hours", doctor });
+
 };
 
 //Log in:
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-
   let user = null;
   let doctor = await doctorModel.findOne({ email });
   let patient = null;
+  let admin = null;
+  let checkAdmin = false;
 
   if (!doctor) {
     patient = await patientModel.findOne({ email });
     if (!patient) {
-      return next(new Error("User Not Registered", { status: 409 }));
+      admin = await adminModel.findOne({ email });
+      if (!admin) {
+        return next(new Error("User Not Registered", { status: 409 }));
+      }
+      user = admin;
+      checkAdmin = true;
+    } else {
+      user = patient;
     }
-    user = patient;
   } else {
     user = doctor;
+    if (user.accepted === false) {
+      return res.json({ message: "Doctor is not accepted yet" });
+    }
   }
-
   if (!user.confirmEmail) {
-    return next(new Error("Plz Confirm Your Email ^_^", { status: 400 }));
+    return res.json({ message: "Email is not confirmed" });
   }
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) {
     return next(new Error("Invalid Password!!", { status: 400 }));
+
   }
 
   const token = jwt.sign(
-    { id: user._id, role: user.role, status: user.status },
+    { id: user._id, role: user.role, status: user.status, isAdmin: checkAdmin },
     process.env.LOG_IN_SECRET,
     { expiresIn: 60 * 60 * 24 }
   );
 
   const refreshToken = jwt.sign(
-    { id: user._id, role: user.role, status: user.status },
+    { id: user._id, role: user.role, status: user.status, isAdmin: checkAdmin },
     process.env.LOG_IN_SECRET,
     { expiresIn: 60 * 60 * 24 * 30 }
   );
@@ -121,7 +139,7 @@ export const confirmEmail = async (req, res, next) => {
 
   if (!user) {
     return next(
-      new Error("Invalid verify your email OR Your email is verified", {
+      new Error("Invalid verify your email OR Your email is already verified", {
         status: 400,
       })
     );
@@ -135,18 +153,31 @@ export const sendCode = async (req, res, next) => {
   const { email } = req.body;
 
   let doctor = await doctorModel.findOne({ email });
+  let checkConfirmation = doctor;
   let patient = null;
   let model = null;
+  let admin = null;
 
   if (!doctor) {
     patient = await patientModel.findOne({ email });
+    checkConfirmation = patient;
     if (!patient) {
-      return next(new Error("User Not Registered", { status: 409 }));
+      admin = await adminModel.findOne({ email });
+      if (!admin) {
+        return next(new Error("User Not Registered", { status: 409 }));
+      }
+      model = adminModel;
+    } else {
+      model = patientModel;
     }
-    model = patientModel;
   } else {
     model = doctorModel;
   }
+
+  if (checkConfirmation.confirmEmail == false) {
+    return next(new Error("Email is not Confirmed", { status: 404 }));
+  }
+
 
   let code = customAlphabet("1234567890abcdzABCDZ", 4);
   code = code();
@@ -156,7 +187,7 @@ export const sendCode = async (req, res, next) => {
   const html = `<h3>Code is <em>${code}</em></h3>`;
   await sendEmail(email, "Reset Password", html);
 
-  return res.status(200).json({ message: `Code is ${code}` });
+  return res.status(200).json({ message: 'Done', code: `Code is ${code}` });
 };
 
 //Forgot Password:
@@ -166,13 +197,19 @@ export const forgotPassword = async (req, res, next) => {
   let user = null;
   let doctor = await doctorModel.findOne({ email });
   let patient = null;
+  let admin = null;
 
   if (!doctor) {
     patient = await patientModel.findOne({ email });
     if (!patient) {
-      return next(new Error("User Not Registered", { status: 409 }));
+      admin = await adminModel.findOne({ email });
+      if (!admin) {
+        return next(new Error("User Not Registered", { status: 409 }));
+      }
+      user = admin;
+    } else {
+      user = patient;
     }
-    user = patient;
   } else {
     user = doctor;
   }

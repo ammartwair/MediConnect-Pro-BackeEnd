@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import doctorModel from "../../DB/Model/Doctor.Model.js";
 import patientModel from "../../DB/Model/Patient.Model.js";
+import adminModel from "../../DB/Model/Admin.Model.js";
 
 export const roles = {
   Admin: "Admin",
@@ -22,9 +23,12 @@ export const auth = (accessRoles = []) => {
     let model = null;
     if (decoded.role === "Patient") {
       model = patientModel;
-    } else {
+    } else if (decoded.role === "Doctor") {
       model = doctorModel;
+    } else {
+      model = adminModel;
     }
+
     const user = await model.findById(decoded.id).select("userName role");
     if (!user) {
       return next(new Error("Not Registered User", { status: 404 }));

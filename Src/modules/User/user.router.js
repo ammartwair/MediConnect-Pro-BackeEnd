@@ -9,10 +9,18 @@ import { endPoints } from "./user.endpoint.js";
 
 const router = Router();
 
+
+// Accept Doctors:
+router.patch(
+  "/acceptDoctors",
+  asyncHandler(auth(endPoints.acceptDoctors)),
+  asyncHandler(userController.acceptDoctors)
+);
+
 // Get Doctors:
 router.get(
   "/doctors",
-  asyncHandler(auth(Object.values(roles))),
+  // asyncHandler(auth(Object.values(roles))),
   asyncHandler(userController.getDoctors)
 );
 
@@ -21,6 +29,34 @@ router.get(
   "/patients",
   asyncHandler(auth(Object.values(roles))),
   asyncHandler(userController.getPatients)
+);
+
+// Get UnAccepted Doctors:
+router.get(
+  "/doctorsUnAccepted",
+  asyncHandler(auth(endPoints.getUnAccepted)),
+  asyncHandler(userController.doctorsUnAccepted)
+);
+
+// Get Accepted Doctors:
+router.get(
+  "/doctorsAccepted",
+  // asyncHandler(auth(endPoints.getAccepted)),
+  asyncHandler(userController.doctorsAccepted)
+); 
+
+//Make a user as an admin
+router.post(
+  "/userAdmin",
+  asyncHandler(auth(endPoints.userAdmin)),
+  asyncHandler(userController.userAdmin)
+);
+
+
+// Get User:
+router.get(
+  "/:id",
+  asyncHandler(userController.getUser)
 );
 
 //Delete User:
@@ -52,15 +88,6 @@ router.get(
   "/profile",
   asyncHandler(auth(endPoints.getProfile)),
   asyncHandler(userController.getProfile)
-);
-
-// Upload Patients from Excel File
-router.post(
-  "/uploadPatientExcel",
-  asyncHandler(auth(endPoints.upload)),
-  fileUpload(fileValidation.excel).single("file"),
-  validation(validators.uploadPatientExcel),
-  asyncHandler(userController.uploadPatientExcel)
 );
 
 // create pdf file with patients information

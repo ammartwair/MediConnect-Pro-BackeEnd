@@ -5,11 +5,14 @@ export const create = async (req, res, next) => {
   const { appointmentId } = req.params;
   const { comment, rating } = req.body;
 
-  const appointment = await appointmentModel.findOne({
+  const appointment = await appointmentModel.findOneAndUpdate({
     _id: appointmentId,
     patientId: req.user.id,
-    status: "complete",
-  });
+    status: "completed"
+  },
+    { status: "completed and reviewed" },
+    { new: true }
+  );
   if (!appointment) {
     return next(new Error("Can't Review this appointment", { status: 400 }));
   }
@@ -33,4 +36,28 @@ export const create = async (req, res, next) => {
   }
 
   return res.status(201).json({ message: "success review", review });
+};
+
+
+
+// Get Appointment Review
+export const getAppointmentReview = async (req, res, next) => {
+  //  const { skip, limit } = pagination(req.query.page, req.query.limit);
+  //const { skip } = pagination(req.query.page);
+
+  const review = await reviewModel
+    .findOne({
+      appointmentId: req.params.appointmentId
+    })
+    .select("appointmentId comment rating")
+  // .populate("review")
+  // .skip(skip);
+  //.limit(limit);
+  console.log(req.params);
+
+  if (!review) {
+    return next({ message: "Review not found", status: 404 });
+  }
+
+  return res.status(200).json({ message: "Success", review });
 };

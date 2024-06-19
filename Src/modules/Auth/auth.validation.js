@@ -31,27 +31,27 @@ export const doctorSignup = joi.object({
       joi
         .string()
         .valid(
-          "cardiology",
-          "dermatology",
-          "endocrinology",
-          "gastroenterology",
-          "hematology",
-          "infectiousDisease",
-          "neurology",
-          "obstetricsAndGynecology(OB/GYN)",
-          "oncology",
-          "ophthalmology",
-          "orthopedics",
-          "otolaryngology(ENT)",
-          "pediatrics",
-          "pulmonology",
-          "rheumatology",
-          "urology",
-          "psychiatry",
-          "anesthesiology",
-          "emergencyMedicine ",
-          "familyMedicine"
-        )
+          'Cardiology',
+          'Dermatology',
+          'Endocrinology',
+          'Gastroenterology',
+          'Hematology',
+          'InfectiousDisease',
+          'Neurology',
+          'ObstetricsAndGynecology(OB/GYN)',
+          'Oncology',
+          'Ophthalmology',
+          'Orthopedics',
+          'Otolaryngology(ENT)',
+          'Pediatrics',
+          'Pulmonology',
+          'Rheumatology',
+          'Urology',
+          'Psychiatry',
+          'Anesthesiology',
+          'EmergencyMedicine',
+          'FamilyMedicine'
+        ).min(1).max(20)
     )
     .required(),
 });
@@ -61,6 +61,7 @@ export const addWorkingHours = joi.object({
     .array()
     .items(
       joi.object({
+        number:joi.number().required(),
         start: joi.string().required(),
         end: joi.string().required(),
       })

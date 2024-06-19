@@ -6,3 +6,10 @@ export const create = joi.object({
   comment: joi.string().required(),
   rating: joi.number().min(1).max(5).required(),
 });
+
+
+export const getAppointmentReview = joi.object({
+  appointmentId: generalFields.id.required(),
+  page: joi.number().min(1),
+  limit: joi.number().min(1).max(10),
+});

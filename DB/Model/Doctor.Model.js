@@ -1,5 +1,12 @@
 import mongoose, { Schema, Types, model } from "mongoose";
 
+const validSpecialties = [
+  'Cardiology', 'Dermatology', 'Endocrinology', 'Gastroenterology',
+  'Hematology', 'InfectiousDisease', 'Neurology', 'ObstetricsAndGynecology(OB/GYN)',
+  'Oncology', 'Ophthalmology', 'Orthopedics', 'Otolaryngology(ENT)',
+  'Pediatrics', 'Pulmonology', 'Rheumatology', 'Urology',
+  'Psychiatry', 'Anesthesiology', 'EmergencyMedicine', 'FamilyMedicine'
+];
 const doctorSchema = new Schema(
   {
     userName: {
@@ -14,6 +21,11 @@ const doctorSchema = new Schema(
       unique: true,
     },
     confirmEmail: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    accepted: {
       type: Boolean,
       required: true,
       default: false,
@@ -63,32 +75,15 @@ const doctorSchema = new Schema(
         ref: "patientModel",
       },
     ],
-    specialties: [
-      {
-        type: String,
-        valid:
-          ("cardiology",
-          "dermatology",
-          "endocrinology",
-          "gastroenterology",
-          "hematology",
-          "infectiousDisease",
-          "neurology",
-          "obstetricsAndGynecology(OB/GYN)",
-          "oncology",
-          "ophthalmology",
-          "orthopedics",
-          "otolaryngology(ENT)",
-          "pediatrics",
-          "pulmonology",
-          "rheumatology",
-          "urology",
-          "psychiatry",
-          "anesthesiology",
-          "emergencyMedicine ",
-          "familyMedicine"),
-      },
-    ],
+    specialties: {
+      type: [String], // Array of strings
+      validate: {
+        validator: function (specialties) {
+          return specialties.every(specialty => validSpecialties.includes(specialty));
+        },
+        message: props => `${props.value} is not a valid specialty!`
+      }
+    },
     role: {
       type: String,
       required: true,
@@ -99,12 +94,20 @@ const doctorSchema = new Schema(
       length: 4,
       default: null,
     },
-    workingHours: [
-      {
-        start: Date,
-        end: Date,
+    workingHours: [{
+      dayOfWeek: {
+        type: Number, // Example: 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+        required: true
       },
-    ],
+      startTime: {
+        type: String, // Example: "09:00 AM"
+        required: true
+      },
+      endTime: {
+        type: String, // Example: "05:00 PM"
+        required: true
+      }
+    }],
     changePasswordTime: {
       type: Date,
     },

@@ -34,19 +34,10 @@ const appointmentSchema = new Schema(
     status: {
       type: String,
       required: true,
-      enum: ["pending", "confirmed", "complete", "cancelled"],
+      enum: ["pending", "confirmed", "completed", "cancelled" , "completed and reviewed"],
     },
     notes: {
       type: String,
-    },
-    invoiceId: {
-      type: Types.ObjectId,
-      ref: "Payment",
-    },
-    paymentStatus: {
-      type: String,
-      required: true,
-      enum: ["unpaid", "paid", "cancelled", "failed"],
     },
     createdBy: {
       type: Types.ObjectId,

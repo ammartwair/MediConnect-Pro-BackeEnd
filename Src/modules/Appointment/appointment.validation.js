@@ -30,22 +30,18 @@ export const getDoctorAppointments = joi.object({
   limit: joi.number().min(1).max(10),
 });
 
+export const getAppointments = joi.object({
+  page: joi.number().min(1),
+  limit: joi.number().min(1).max(10),
+  role: joi.string().valid("Doctor", "Patient").required(),
+  id: generalFields.id.required(),
+});
+
 export const cancelAppointment = joi.object({
   appointmentId: generalFields.id.required(),
 });
 
 export const changeAppointmentStatus = joi.object({
   appointmentId: generalFields.id.required(),
-  status: joi.string().valid("confirmed", "complete", "cancelled").required(),
-});
-
-export const changePaymentStatus = joi.object({
-  appointmentId: generalFields.id.required(),
-  paymentStatus: joi.string().valid("failed", "cancelled").required(),
-});
-
-export const getAppointmentReview = joi.object({
-  appointmentId: generalFields.id.required(),
-  page: joi.number().min(1),
-  limit: joi.number().min(1).max(10),
+  status: joi.string().valid("confirmed", "completed", "cancelled", "completed and reviewed").required(),
 });

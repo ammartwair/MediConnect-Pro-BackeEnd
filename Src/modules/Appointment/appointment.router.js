@@ -34,6 +34,14 @@ router.get(
   asyncHandler(appointmentController.getDoctorAppointments)
 );
 
+// Get User Appointments (Admin)
+router.get(
+  "/getAppointments/:role/:id",
+  asyncHandler(auth(endPoints.getAppointments)),
+  validation(validators.getAppointments),
+  asyncHandler(appointmentController.getAppointments)
+);
+
 // Get Appointment Details
 router.get(
   "/getAppointmentDetails/:id",
@@ -65,19 +73,5 @@ router.patch(
   asyncHandler(appointmentController.changeAppointmentStatus)
 );
 
-// Change Appointment Payment Status
-router.patch(
-  "/changePaymentStatus/:appointmentId",
-  asyncHandler(auth(endPoints.changePaymentStatus)),
-  validation(validators.changePaymentStatus),
-  asyncHandler(appointmentController.changePaymentStatus)
-);
 
-//Get Appointment Review
-router.get(
-  "/getAppointmentReview/:appointmentId",
-  asyncHandler(auth(endPoints.getAppointmentReview)),
-  validation(validators.getAppointmentReview),
-  asyncHandler(appointmentController.getAppointmentReview)
-);
 export default router;
