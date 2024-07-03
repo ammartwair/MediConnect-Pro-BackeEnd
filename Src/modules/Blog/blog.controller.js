@@ -6,28 +6,14 @@ import { pagination } from "../../services/pagination.js";
 
 //create a new blog:
 export const createBlog = async (req, res, next) => {
-  console.log(req);
   const { title } = req.body;
   let blog = await blogModel.findOne({ title });
 
   if (blog) {
-    return next(new Error("Blog is already created", { status: 404 }));
+    return res.json({ message: "Blog is already created" });
   }
 
   req.body.slug = slugify(title);
-
-  if (req.files) {
-    req.body.images = [];
-    for (const file of req.files) {
-      const { secure_url, public_id } = await cloudinary.uploader.upload(
-        file.path,
-        {
-          folder: `${process.env.APP_NAME}/blogs/${title}`,
-        }
-      );
-      req.body.images.push({ secure_url, public_id });
-    }
-  }
 
   req.body.createdBy = req.user._id;
   req.body.updatedBy = req.user._id;
@@ -35,7 +21,7 @@ export const createBlog = async (req, res, next) => {
   blog = await blogModel.create(req.body);
 
   if (!blog) {
-    return next(new Error("Error While Creating Blog", { status: 400 }));
+    return res.json({ message: "Error Occured While Creating Blog" });
   }
 
   return res.status(200).json({ message: "Blog Created", blog });
@@ -43,29 +29,27 @@ export const createBlog = async (req, res, next) => {
 
 // get blogs:
 export const getBlogs = async (req, res, next) => {
-  const { skip, limit } = pagination(req.query.page, req.query.limit);
+  // const { skip, limit } = pagination(req.query.page, req.query.limit);
 
   // filter
   const queryObject = Filter({ ...req.query });
 
   const mongooseQuery = await blogModel
     .find(queryObject)
-    .skip(skip)
-    .limit(limit)
+    // .skip(skip)
+    // .limit(limit)
     .populate('createdBy');
 
   const blogs = mongooseQuery;
-
-  const blogsWithUsernames = blogs.map(blog => ({
-    ...blog.toJSON(),
-    username: blog.createdBy.username 
-  }));
-
-  console.log(blogsWithUsernames);
-
-  if (blogs.length <= 0) {
+  console.log(blogs);
+  if (!blogs || blogs.length == 0) {
     return res.json({ message: "No Blogs" });
   }
+  const blogsWithUsernames = blogs.map(blog => ({
+    ...blog.toJSON(),
+    userName: blog.createdBy.userName
+  }));
+
 
   return res.status(200).json({ message: "success", blogsWithUsernames });
 };

@@ -13,7 +13,6 @@ const router = Router();
 router.post(
   "/createBlog",
   asyncHandler(auth(endPoints.create)),
-  fileUpload(fileValidation.image).array("file", 4),
   validation(validators.createBlog),
   asyncHandler(BlogController.createBlog)
 );

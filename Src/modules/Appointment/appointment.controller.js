@@ -32,7 +32,7 @@ export const bookAppointment = async (req, res, next) => {
     endTime
   );
   if (!available) {
-    return next(new Error(availableMessage, { status: 404 }));
+    return res.json({ message: availableMessage });
   }
 
 
@@ -44,7 +44,7 @@ export const bookAppointment = async (req, res, next) => {
     "Patient"
   );
   if (conflict) {
-    return next(new Error(conflictMessage, { status: 404 }));
+    return res.json({ message: conflictMessage });
   }
 
   const { conflict: doctorConflict, conflictMessage: doctorConflictMessage } =

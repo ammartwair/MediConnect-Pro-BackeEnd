@@ -15,7 +15,7 @@ export const signup = async (req, res, next) => {
   if (user) {
     return next(new Error("User Already Registered", { status: 409 }));
   }
-  user = await adminModel.findOne({email});
+  user = await adminModel.findOne({ email });
   if (user) {
     return next(new Error("User Already Registered", { status: 409 }));
   }
@@ -79,7 +79,7 @@ export const login = async (req, res, next) => {
     if (!patient) {
       admin = await adminModel.findOne({ email });
       if (!admin) {
-        return next(new Error("User Not Registered", { status: 409 }));
+        return res.json({ message: "User Not Registered" })
       }
       user = admin;
       checkAdmin = true;

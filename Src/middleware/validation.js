@@ -29,7 +29,7 @@ export const generalFields = {
     fieldname: joi.string().required(),
   }),
   token: joi.string(),
-  gender: joi.string().valid("Male", "Female"),
+  gender: joi.string().valid("Male", "Female"), 
   address: joi.string().min(3).max(20),
   phoneNumber: joi.string().length(13),
   role: joi.string().valid("Doctor", "Patient"),

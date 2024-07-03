@@ -19,12 +19,6 @@ const blogSchema = new Schema(
       min: 5,
       max: 5000000000,
     },
-    images: [
-      {
-        type: Object,
-        required: true,
-      },
-    ],
     createdBy: { type: Types.ObjectId, ref: "Doctor", required: true },
     updatedBy: { type: Types.ObjectId, ref: "Doctor", required: true },
   },
